@@ -1,0 +1,48 @@
+services:
+  database:
+    image: postgres:17
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    networks:
+      - app_network
+    volumes:
+      - app_database_volume:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: ./back-end
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./back-end:/app
+    env_file:
+      - .env
+    depends_on:
+      - database
+    networks:
+      - app_network
+
+  web:
+    build:
+      context: ./front-end
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    networks:
+      - app_network
+    volumes:
+      - ./front-end:/app
+networks:
+  app_network:
+    name: app_network
+
+volumes:
+  app_database_volume:
+    name: app_database_volume
